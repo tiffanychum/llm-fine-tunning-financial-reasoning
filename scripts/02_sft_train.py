@@ -147,7 +147,7 @@ def main(config_path: str):
             fp16=t["fp16"],
             bf16=t["bf16"],
             max_grad_norm=t["max_grad_norm"],
-            evaluation_strategy="steps",
+            eval_strategy="steps",
             eval_steps=t["save_steps"],
             save_strategy="steps",
             save_steps=t["save_steps"],
