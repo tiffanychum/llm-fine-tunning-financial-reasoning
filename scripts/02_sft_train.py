@@ -137,7 +137,7 @@ def main(config_path: str):
         eval_dataset=val_ds,
         args=SFTConfig(
             # SFT-specific
-            max_seq_length=cfg["model"]["max_seq_length"],
+            max_length=cfg["model"]["max_seq_length"],
             packing=t["packing"],
             dataset_text_field="text",
             # Training
