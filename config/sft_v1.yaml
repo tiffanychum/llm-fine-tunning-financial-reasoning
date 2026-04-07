@@ -30,8 +30,8 @@ data:
 training:
   epochs: 3
   learning_rate: 5.0e-6
-  per_device_batch_size: 4               # A100: doubled from 2 → 4 (fits in ~25GB headroom)
-  gradient_accumulation_steps: 8         # effective batch = 32 (was 16)
+  per_device_batch_size: 2               # OOM fix: halved from 4 → 2
+  gradient_accumulation_steps: 16        # doubled to keep effective batch = 32
   warmup_ratio: 0.05
   scheduler: "cosine"
   fp16: false
