@@ -21,10 +21,8 @@ import wandb
 import yaml
 from datasets import Dataset
 from dotenv import load_dotenv
-from transformers import TrainingArguments
-from trl import SFTTrainer
+from trl import SFTConfig, SFTTrainer
 from unsloth import FastLanguageModel
-from unsloth.trainer import UnslothTrainingArguments
 
 load_dotenv()
 
@@ -137,7 +135,12 @@ def main(config_path: str):
         processing_class=tokenizer,
         train_dataset=train_ds,
         eval_dataset=val_ds,
-        args=TrainingArguments(
+        args=SFTConfig(
+            # SFT-specific
+            max_seq_length=cfg["model"]["max_seq_length"],
+            packing=t["packing"],
+            dataset_text_field="text",
+            # Training
             num_train_epochs=t["epochs"],
             learning_rate=t["learning_rate"],
             per_device_train_batch_size=t["per_device_batch_size"],
@@ -159,9 +162,6 @@ def main(config_path: str):
             output_dir=checkpoint_dir,
             report_to="wandb",
         ),
-        max_seq_length=cfg["model"]["max_seq_length"],
-        packing=t["packing"],
-        dataset_text_field="text",
     )
 
     print("\n[Train] Starting SFT...")
