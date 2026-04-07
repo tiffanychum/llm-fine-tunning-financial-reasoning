@@ -140,6 +140,7 @@ def main(config_path: str):
             max_length=cfg["model"]["max_seq_length"],
             packing=t["packing"],
             dataset_text_field="text",
+            eos_token="<|im_end|>",      # Qwen2.5 chat-end token; TRL default <EOS_TOKEN> is invalid
             # Training
             num_train_epochs=t["epochs"],
             learning_rate=t["learning_rate"],
