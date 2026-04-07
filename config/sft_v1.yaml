@@ -2,17 +2,17 @@
 # Change version (v1 → v2) whenever you run a new experiment
 
 experiment:
-  name: "sft-qwen3-8b-v1"
-  tags: ["sft", "qwen3-8b", "financial-reasoning"]
+  name: "sft-qwen25-7b-v1"
+  tags: ["sft", "qwen25-7b", "financial-reasoning"]
 
 model:
-  name: "unsloth/Qwen3-8B"               # Qwen3-8B — strong baseline (72% acc)
+  name: "unsloth/Qwen2.5-7B-Instruct"
   max_seq_length: 4096
-  load_in_4bit: false                      # true for Colab T4, false for A100
+  load_in_4bit: false                      # A100 40GB — full bfloat16, no quantization needed
 
 lora:
-  r: 16
-  lora_alpha: 16
+  r: 32                                    # A100: bumped from 16 → 32 for more capacity
+  lora_alpha: 32                           # keep alpha == r (scaling = 1x)
   dropout: 0.0
   target_modules:
     - q_proj
@@ -29,13 +29,13 @@ data:
 
 training:
   epochs: 3
-  learning_rate: 2.0e-6   # lower than Qwen2.5 — Qwen3 baseline already at 72%
-  per_device_batch_size: 2
-  gradient_accumulation_steps: 8     # effective batch = 16
+  learning_rate: 5.0e-6
+  per_device_batch_size: 4               # A100: doubled from 2 → 4 (fits in ~25GB headroom)
+  gradient_accumulation_steps: 8         # effective batch = 32 (was 16)
   warmup_ratio: 0.05
   scheduler: "cosine"
   fp16: false
-  bf16: true                        # set true on A100; keep false on T4
+  bf16: true                             # A100 native bfloat16
   max_grad_norm: 1.0
   save_steps: 100
   save_total_limit: 3
