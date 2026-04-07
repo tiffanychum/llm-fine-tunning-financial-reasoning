@@ -10,7 +10,7 @@ Outputs:
     results/sft/              — lm-eval results for all 3 epoch checkpoints
 """
 
-import unsloth  # must be first — patches trl/transformers/peft before they load
+from unsloth import FastLanguageModel # must be first — patches trl/transformers/peft before they load
 
 import argparse
 import json
@@ -24,7 +24,6 @@ import yaml
 from datasets import Dataset
 from dotenv import load_dotenv
 from trl import SFTConfig, SFTTrainer
-from unsloth import FastLanguageModel
 
 load_dotenv()
 
