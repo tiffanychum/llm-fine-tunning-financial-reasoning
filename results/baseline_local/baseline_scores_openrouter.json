@@ -1,0 +1,11 @@
+{
+  "backend": "openrouter",
+  "model": "qwen/qwen-2.5-7b-instruct",
+  "metrics": {
+    "n": 3,
+    "accuracy": 0.3333333333333333,
+    "format_think_pct": 0.6666666666666666,
+    "format_answer_pct": 0.6666666666666666,
+    "mean_score": 0.39999999999999997
+  }
+}

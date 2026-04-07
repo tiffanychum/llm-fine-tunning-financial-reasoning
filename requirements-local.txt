@@ -1,0 +1,23 @@
+# Local development dependencies (Mac / no GPU)
+# Use this for: data pipeline, Poe API CoT generation, W&B logging, config editing
+#
+# The full requirements.txt (with unsloth, trl, torch+cuda) runs on Google Colab.
+
+# Datasets & data processing
+datasets>=2.20.0
+huggingface_hub>=0.24.0
+
+# Poe API — CoT trace generation (01_data_pipeline.py)
+fastapi_poe>=0.0.48
+
+# OpenRouter — TRUE Qwen2.5-7B baseline via API (00_setup_eval_local.py)
+openai>=1.40.0
+
+# Experiment tracking
+wandb>=0.18.0
+
+# Utilities
+pyyaml>=6.0
+python-dotenv>=1.0.0
+tqdm>=4.66.0
+nest_asyncio>=1.6.0

@@ -1,0 +1,12 @@
+{
+  "bot": "Claude-3-5-Haiku",
+  "dataset": "finqa-test",
+  "limit": 3,
+  "metrics": {
+    "n": 3,
+    "accuracy": 0.6666666666666666,
+    "format_think_pct": 1.0,
+    "format_answer_pct": 1.0,
+    "mean_score": 0.7333333333333334
+  }
+}

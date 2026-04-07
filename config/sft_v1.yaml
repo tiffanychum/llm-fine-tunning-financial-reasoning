@@ -1,0 +1,47 @@
+# SFT Training Configuration — v1
+# Change version (v1 → v2) whenever you run a new experiment
+
+experiment:
+  name: "sft-qwen7b-v1"
+  tags: ["sft", "qwen7b", "financial-reasoning"]
+
+model:
+  name: "unsloth/Qwen2.5-7B-Instruct"   # swap to Qwen2.5-14B-Instruct on A100
+  max_seq_length: 4096
+  load_in_4bit: false                      # true for Colab T4, false for A100
+
+lora:
+  r: 16
+  lora_alpha: 16
+  dropout: 0.0
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+data:
+  train_path: "data/processed/sft_train_v1.jsonl"
+  val_path:   "data/processed/sft_val_v1.jsonl"
+
+training:
+  epochs: 3
+  learning_rate: 5.0e-6
+  per_device_batch_size: 2
+  gradient_accumulation_steps: 8     # effective batch = 16
+  warmup_ratio: 0.05
+  scheduler: "cosine"
+  fp16: false
+  bf16: true                        # set true on A100; keep false on T4
+  max_grad_norm: 1.0
+  save_steps: 100
+  save_total_limit: 3
+  logging_steps: 10
+  packing: true
+
+output:
+  checkpoint_dir: "checkpoints/sft/"
+  results_dir:    "results/sft/"

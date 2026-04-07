@@ -1,0 +1,24 @@
+# Core training
+unsloth[colab-new]          # Unsloth with Colab-compatible extras
+trl>=0.12.0                 # GRPOTrainer + SFTTrainer
+transformers>=4.45.0
+datasets>=2.20.0
+peft>=0.12.0
+
+# Evaluation
+lm-eval>=0.4.3              # lm-evaluation-harness for FinQA benchmarks
+
+# Poe API (CoT generation)
+fastapi_poe>=0.0.48
+
+# Experiment tracking
+wandb>=0.18.0
+
+# Utilities
+pyyaml>=6.0
+python-dotenv>=1.0.0
+tqdm>=4.66.0
+nest_asyncio>=1.6.0         # allows asyncio in Colab notebooks
+
+# Optional: push model to HuggingFace
+huggingface_hub>=0.24.0

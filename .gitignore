@@ -1,0 +1,33 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Data (large files — never commit raw/processed datasets)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Model checkpoints (large binary files)
+checkpoints/
+
+# API keys (never commit)
+.env
+*.env
+
+# Results (commit manually when ready)
+results/*.json
+results/*.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# W&B local cache
+wandb/
