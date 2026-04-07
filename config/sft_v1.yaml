@@ -7,7 +7,7 @@ experiment:
 
 model:
   name: "unsloth/Qwen2.5-7B-Instruct"
-  max_seq_length: 4096
+  max_seq_length: 2048                     # OOM fix: halved from 4096 (attention is O(n²))
   load_in_4bit: false                      # A100 40GB — full bfloat16, no quantization needed
 
 lora:
@@ -30,8 +30,8 @@ data:
 training:
   epochs: 3
   learning_rate: 5.0e-6
-  per_device_batch_size: 2               # OOM fix: halved from 4 → 2
-  gradient_accumulation_steps: 16        # doubled to keep effective batch = 32
+  per_device_batch_size: 2               # keep at 2 (effective batch = 32)
+  gradient_accumulation_steps: 16        # 2×16 = 32 effective batch
   warmup_ratio: 0.05
   scheduler: "cosine"
   fp16: false
