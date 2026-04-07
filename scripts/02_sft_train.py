@@ -119,6 +119,7 @@ def main(config_path: str):
         random_state=42,
     )
     model.print_trainable_parameters()
+    tokenizer.eos_token = "<|im_end|>"   # Qwen2.5 chat-end token; Unsloth sets a placeholder
 
     # Load data
     print("\n[Data] Loading and formatting datasets...")
