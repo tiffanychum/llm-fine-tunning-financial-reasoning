@@ -15,6 +15,7 @@ from unsloth import FastLanguageModel # must be first — patches trl/transforme
 import argparse
 import json
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -23,9 +24,26 @@ import wandb
 import yaml
 from datasets import Dataset
 from dotenv import load_dotenv
+from transformers import TrainerCallback
 from trl import SFTConfig, SFTTrainer
 
 load_dotenv()
+
+DRIVE_BACKUP_DIR = "/content/drive/MyDrive/Colab Notebook/checkpoints/sft"
+
+
+class DriveBackupCallback(TrainerCallback):
+    """Copy each checkpoint to Google Drive immediately after it's saved."""
+
+    def on_save(self, args, state, control, **kwargs):
+        src = Path(args.output_dir) / f"checkpoint-{state.global_step}"
+        dst = Path(DRIVE_BACKUP_DIR) / f"checkpoint-{state.global_step}"
+        if src.exists() and Path("/content/drive").exists():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(src, dst, dirs_exist_ok=True)
+            print(f"\n  💾 Checkpoint backed up to Drive: {dst}")
+        return control
+
 
 SYSTEM_PROMPT = """You are a financial analyst expert.
 Always solve financial problems step-by-step, showing every calculation.
@@ -92,7 +110,7 @@ def evaluate_checkpoint(checkpoint_path: str, output_dir: str, task: str = "finq
 # Main training loop
 # ─────────────────────────────────────────────────────────────────
 
-def main(config_path: str):
+def main(config_path: str, resume: bool = False):
     cfg = yaml.safe_load(open(config_path))
 
     run = wandb.init(
@@ -137,6 +155,7 @@ def main(config_path: str):
         processing_class=tokenizer,
         train_dataset=train_ds,
         eval_dataset=val_ds,
+        callbacks=[DriveBackupCallback()],
         args=SFTConfig(
             # SFT-specific
             max_length=cfg["model"]["max_seq_length"],
@@ -167,8 +186,29 @@ def main(config_path: str):
         ),
     )
 
+    # Check if a checkpoint exists in Drive to resume from
+    resume_ckpt = None
+    if resume:
+        local_ckpts = sorted(Path(checkpoint_dir).glob("checkpoint-*"))
+        drive_ckpts = sorted(Path(DRIVE_BACKUP_DIR).glob("checkpoint-*")) \
+            if Path(DRIVE_BACKUP_DIR).exists() else []
+
+        if local_ckpts:
+            resume_ckpt = str(local_ckpts[-1])
+            print(f"\n[Resume] Resuming from local: {resume_ckpt}")
+        elif drive_ckpts:
+            # Restore latest Drive checkpoint to local before resuming
+            latest = drive_ckpts[-1]
+            local_dest = Path(checkpoint_dir) / latest.name
+            local_dest.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(latest, local_dest, dirs_exist_ok=True)
+            resume_ckpt = str(local_dest)
+            print(f"\n[Resume] Restored from Drive: {latest} → {local_dest}")
+        else:
+            print("\n[Resume] No checkpoint found — starting from scratch")
+
     print("\n[Train] Starting SFT...")
-    trainer.train()
+    trainer.train(resume_from_checkpoint=resume_ckpt)
 
     best_dir = str(Path(checkpoint_dir) / "best")
     trainer.save_model(best_dir)
@@ -205,5 +245,7 @@ def main(config_path: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config/sft_v1.yaml")
+    parser.add_argument("--resume", action="store_true",
+                        help="Resume from latest checkpoint (local or Drive)")
     args = parser.parse_args()
-    main(args.config)
+    main(args.config, resume=args.resume)
