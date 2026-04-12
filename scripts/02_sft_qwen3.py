@@ -213,16 +213,25 @@ def main(config_path: str, resume: bool = False):
     t = cfg["training"]
     checkpoint_dir = cfg["output"]["checkpoint_dir"]
 
+    def formatting_func(example):
+        """Apply Qwen3 chat template to a messages-format example."""
+        return tokenizer.apply_chat_template(
+            example["messages"],
+            tokenize=False,
+            add_generation_prompt=False,
+        )
+
     trainer = SFTTrainer(
         model=model,
         processing_class=tokenizer,
         train_dataset=train_ds,
         eval_dataset=val_ds,
+        formatting_func=formatting_func,
         callbacks=[DriveBackupCallback()],
         args=SFTConfig(
             # ── Fino1 conversational format settings ──────────────
-            # dataset_text_field is NOT set — TRL auto-detects the
-            # "messages" column and applies the chat template
+            # formatting_func above applies Qwen3's chat template to
+            # the "messages" column and produces a "text" string for training
             packing=t["packing"],              # False — no truncation risk
             max_length=cfg["model"]["max_seq_length"],
 
