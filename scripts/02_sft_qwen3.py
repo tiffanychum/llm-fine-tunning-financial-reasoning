@@ -213,13 +213,17 @@ def main(config_path: str, resume: bool = False):
     t = cfg["training"]
     checkpoint_dir = cfg["output"]["checkpoint_dir"]
 
-    def formatting_func(example):
-        """Apply Qwen3 chat template to a messages-format example."""
-        return tokenizer.apply_chat_template(
-            example["messages"],
-            tokenize=False,
-            add_generation_prompt=False,
-        )
+    def formatting_func(batch):
+        """Apply Qwen3 chat template to a batch of messages-format examples.
+        Unsloth calls this with a dict of lists, so we iterate and return a list."""
+        return [
+            tokenizer.apply_chat_template(
+                msgs,
+                tokenize=False,
+                add_generation_prompt=False,
+            )
+            for msgs in batch["messages"]
+        ]
 
     trainer = SFTTrainer(
         model=model,
