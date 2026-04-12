@@ -1,0 +1,11 @@
+{
+  "model": "checkpoints/sft/best",
+  "eval_data": "data/processed/sft_val_v1.jsonl",
+  "metrics": {
+    "n": 650,
+    "accuracy": 0.3230769230769231,
+    "format_think_pct": 0.9076923076923077,
+    "format_answer_pct": 0.9,
+    "mean_score": 0.43846153846153846
+  }
+}

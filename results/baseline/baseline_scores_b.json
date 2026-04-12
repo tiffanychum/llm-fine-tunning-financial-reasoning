@@ -1,0 +1,11 @@
+{
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "eval_data": "data/processed/sft_val_v1.jsonl",
+  "metrics": {
+    "n": 650,
+    "accuracy": 0.31384615384615383,
+    "format_think_pct": 0.94,
+    "format_answer_pct": 0.943076923076923,
+    "mean_score": 0.43923076923076926
+  }
+}

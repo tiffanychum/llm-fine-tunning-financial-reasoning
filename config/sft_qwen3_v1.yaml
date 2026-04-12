@@ -1,0 +1,78 @@
+# ═══════════════════════════════════════════════════════════════
+# SFT Configuration — Qwen3-8B  (Fino1 approach)
+# ═══════════════════════════════════════════════════════════════
+#
+# KEY DIFFERENCES vs config/sft_v1.yaml (Qwen2.5-7B):
+#
+#   model       : Qwen3-8B instead of Qwen2.5-7B
+#                 Qwen3-8B has native thinking mode (<think> blocks built in)
+#                 and a 72% baseline accuracy vs 31.4% for Qwen2.5-7B
+#
+#   load_in_4bit: true — Qwen3-8B is ~8B params (vs 7B); 4-bit keeps it
+#                 under 5 GB so the full 4096 context fits on A100 40 GB
+#
+#   max_seq_length: restored to 4096 (was halved to 2048 in Qwen2.5 run
+#                 which truncated examples and caused format degradation)
+#
+#   learning_rate: 2e-5 — matches Fino1 model card and is 4× higher than
+#                 the broken 5e-6 used in the Qwen2.5 run whose loss
+#                 never converged (still declining at end of 3 epochs)
+#
+#   lora r      : 16 (back from 32) — Qwen3-8B starts from a much stronger
+#                 baseline so a smaller adapter is sufficient; also uses
+#                 less memory allowing larger sequence length
+#
+#   packing     : false — disabled for Qwen3 conversational format.
+#                 Packing + conversational format requires the chat template
+#                 to handle EOS boundaries correctly; safer off until stable
+#
+#   data format : conversational (messages dict) instead of raw text —
+#                 lets TRL apply Qwen3's chat template automatically,
+#                 avoiding the manual eos_token workarounds needed for Qwen2.5
+# ═══════════════════════════════════════════════════════════════
+
+experiment:
+  name: "sft-qwen3-8b-fino1-v1"
+  tags: ["sft", "qwen3-8b", "fino1", "financial-reasoning"]
+
+model:
+  name: "unsloth/Qwen3-8B"          # Qwen3 is a single model with built-in thinking
+  max_seq_length: 4096               # restored — financial tables+reasoning needs full context
+  load_in_4bit: true                 # 4-bit: ~5 GB VRAM for model, leaves room for 4096 seq
+
+lora:
+  r: 16                              # smaller rank vs Qwen2.5 run (was 32)
+  lora_alpha: 16                     # alpha == r → effective LR scaling = 1x
+  dropout: 0.0
+  target_modules:                    # same 7 projection layers as Qwen2.5
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+data:
+  train_path: "data/processed/sft_train_v1.jsonl"   # same FinCoT files — no reprocessing needed
+  val_path:   "data/processed/sft_val_v1.jsonl"     # existing quality+difficulty filters align
+                                                     # with Fino1's difficulty-aware filtering
+
+training:
+  epochs: 3
+  learning_rate: 2.0e-5              # Fino1 model card value; 4× higher than broken Qwen2.5 run
+  per_device_batch_size: 2
+  gradient_accumulation_steps: 8    # effective batch = 16, matches Fino1's 16 on 8×A100
+  warmup_ratio: 0.05
+  scheduler: "cosine"
+  fp16: false
+  bf16: true                         # A100 native bfloat16
+  max_grad_norm: 1.0
+  save_steps: 50                     # more frequent saves — shorter training with packing off
+  save_total_limit: 4
+  logging_steps: 10
+  packing: false                     # off for Qwen3 conversational format
+
+output:
+  checkpoint_dir: "checkpoints/sft_qwen3/"
+  results_dir:    "results/sft_qwen3/"
