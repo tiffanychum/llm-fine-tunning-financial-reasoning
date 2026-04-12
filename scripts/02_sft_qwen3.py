@@ -261,12 +261,13 @@ def main(config_path: str, resume: bool = False):
             max_grad_norm=t["max_grad_norm"],
 
             # ── Checkpoint / eval ─────────────────────────────────
-            eval_strategy="steps",
-            eval_steps=t["save_steps"],
+            # eval_strategy="no" disables in-training eval (OOMs at seq=4096 without FA2)
+            # Eval runs separately after training via 00_setup_eval.py
+            eval_strategy=t.get("eval_strategy", "no"),
             save_strategy="steps",
             save_steps=t["save_steps"],
             save_total_limit=t["save_total_limit"],
-            load_best_model_at_end=True,
+            load_best_model_at_end=t.get("load_best_model_at_end", False),
             metric_for_best_model="eval_loss",
             greater_is_better=False,
             logging_steps=t["logging_steps"],

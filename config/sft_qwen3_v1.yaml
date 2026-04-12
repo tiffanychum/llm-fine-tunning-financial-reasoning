@@ -68,8 +68,10 @@ training:
   fp16: false
   bf16: true                         # A100 native bfloat16
   max_grad_norm: 1.0
-  save_steps: 50                     # more frequent saves — shorter training with packing off
+  save_steps: 150                    # checkpoint every 150 steps (~1 per 0.4 epoch)
   save_total_limit: 4
+  eval_strategy: "no"                # eval disabled — OOM during eval at seq=4096 (no FA2)
+  load_best_model_at_end: false      # must be false when eval_strategy=no
   logging_steps: 10
   packing: false                     # off for Qwen3 conversational format
 
