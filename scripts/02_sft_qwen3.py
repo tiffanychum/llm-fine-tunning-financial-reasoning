@@ -214,15 +214,25 @@ def main(config_path: str, resume: bool = False):
     checkpoint_dir = cfg["output"]["checkpoint_dir"]
 
     def formatting_func(batch):
-        """Apply Qwen3 chat template to a batch of messages-format examples.
-        Unsloth calls this with a dict of lists, so we iterate and return a list."""
+        """Apply Qwen3 chat template to examples.
+        Unsloth calls this two ways:
+          - Test call: single example dict  {"messages": [{"role":..}, ...]}
+          - Train call: batch dict          {"messages": [[{..}, ..], [{..}, ..]]}
+        Detect which case by checking if messages[0] is a dict (single) or list (batch).
+        Always returns a list of strings.
+        """
+        msgs = batch["messages"]
+        # Single example: msgs is a flat list of role/content dicts
+        if isinstance(msgs[0], dict):
+            return [tokenizer.apply_chat_template(
+                msgs, tokenize=False, add_generation_prompt=False
+            )]
+        # Batch: msgs is a list of message lists
         return [
             tokenizer.apply_chat_template(
-                msgs,
-                tokenize=False,
-                add_generation_prompt=False,
+                m, tokenize=False, add_generation_prompt=False
             )
-            for msgs in batch["messages"]
+            for m in msgs
         ]
 
     trainer = SFTTrainer(
