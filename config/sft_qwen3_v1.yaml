@@ -37,8 +37,8 @@ experiment:
 
 model:
   name: "unsloth/Qwen3-8B"          # Qwen3 is a single model with built-in thinking
-  max_seq_length: 2048               # OOM fix: 4096+packing=false blows backward pass; 2048 safe
-  load_in_4bit: true                 # 4-bit: ~5 GB VRAM for model
+  max_seq_length: 4096               # restored: financial context+reasoning needs full window
+  load_in_4bit: true                 # 4-bit: ~5 GB for model weights, leaves room for 4096 activations
 
 lora:
   r: 16                              # smaller rank vs Qwen2.5 run (was 32)
@@ -60,9 +60,9 @@ data:
 
 training:
   epochs: 3
-  learning_rate: 2.0e-5              # Fino1 model card value; 4× higher than broken Qwen2.5 run
-  per_device_batch_size: 1           # OOM fix: 4bit+2048+packing=false needs batch=1
-  gradient_accumulation_steps: 16   # 1×16 = 16 effective batch, same as before
+  learning_rate: 2.0e-5              # Fino1 model card value; loss must converge within 3 epochs
+  per_device_batch_size: 1           # OOM fix: batch=1 halves backward alloc (~4GB vs ~8GB)
+  gradient_accumulation_steps: 16   # 1×16 = 16 effective batch (same as Fino1 on single GPU)
   warmup_ratio: 0.05
   scheduler: "cosine"
   fp16: false
